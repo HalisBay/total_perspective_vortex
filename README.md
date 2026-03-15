@@ -2,11 +2,19 @@
 
 This project aims to develop a Brain-Computer Interface (BCI) using EEG data and machine learning. By analyzing EEG signals within a time window (t₀–tₙ), the system attempts to infer the subject’s thoughts or intended actions—specifically distinguishing between two motions (A or B).
 
+Goals
+• Process EEG datas (parsing and filtering)
+• Implement a dimensionality reduction algorithm
+• Use the pipeline object from scikit-learn
+• Classify a data stream in "real time"
+
+
 ## What is EEG
 
 EEG (Electroencephalography) records the brain's electrical activity using electrodes placed on the scalp. It provides high temporal resolution signals, which makes it suitable for BCI tasks where we need to classify intention from short data chunks in near real time.
-![image](images/image.png)
 
+![image](images/image.png)
+[source](https://physionet.org/content/eegmmidb/1.0.0/64_channel_sharbrough.pdf)
 
 ## Step 1: File Structure
 
@@ -80,4 +88,17 @@ Using these signals, the objective of the project is to extract meaningful featu
 
 
 ![eeg](images/eeg.png)
-[source](https://physionet.org/content/eegmmidb/1.0.0/64_channel_sharbrough.pdf)
+
+
+## Step 3 : Exploratory Data Analysis - EDA
+
+Burada [MNE'nin kendi kaynağını kullanacağım](https://mne.tools/stable/auto_tutorials/index.html)
+
+The **info** data structure keeps track of channel locations, applied filters, projectors, etc. Notice especially the chs entry, showing that MNE-Python detects different sensor types and handles each appropriately.
+
+ve belirttiğim kaynak içerisinde yazan en önemli bilgi ise : *Raw objects also have several built-in plotting methods; here we show the power spectral density (PSD) for each sensor type with compute_psd, as well as a plot of the raw sensor traces with plot. In the PSD plot, we’ll only plot frequencies below 50 Hz (since our data are low-pass filtered at 40 Hz). In interactive Python sessions, plot is interactive and allows scrolling, scaling, bad channel marking, annotations, projector toggling, etc.* bu bize preprocess'in kapılarını açıyor diyebiliriz.
+
+
+
+
+

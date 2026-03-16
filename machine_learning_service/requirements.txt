@@ -1,3 +1,4 @@
 mne
 matplotlib
 scikit-learn
+autoreject

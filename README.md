@@ -11,7 +11,7 @@ Goals
 
 ## What is EEG
 
-EEG (Electroencephalography) records the brain's electrical activity using electrodes placed on the scalp. It provides high temporal resolution signals, which makes it suitable for BCI tasks where we need to classify intention from short data chunks in near real time.
+EEG (Electroencephalography) records the brain's electrical activity using electrodes placed on the scalp. It provides high temporal resolution signals, which makes it suitable for BCI tasks where we need to classify intention from short data chunks in near real time. [Full document](machine_learning_service/docs/EEG.md)
 
 ![image](images/image.png)
 [source](https://physionet.org/content/eegmmidb/1.0.0/64_channel_sharbrough.pdf)
@@ -90,15 +90,58 @@ Using these signals, the objective of the project is to extract meaningful featu
 ![eeg](images/eeg.png)
 
 
-## Step 3 : Exploratory Data Analysis - EDA
+## Step 3 : Exploratory Data Analysis (EDA)
 
-Burada [MNE'nin kendi kaynağını kullanacağım](https://mne.tools/stable/auto_tutorials/index.html)
+Objective: verify recordings and detect noise/artifacts before applying preprocessing so feature extraction will be reliable.
 
-The **info** data structure keeps track of channel locations, applied filters, projectors, etc. Notice especially the chs entry, showing that MNE-Python detects different sensor types and handles each appropriately.
+What to inspect:
 
-ve belirttiğim kaynak içerisinde yazan en önemli bilgi ise : *Raw objects also have several built-in plotting methods; here we show the power spectral density (PSD) for each sensor type with compute_psd, as well as a plot of the raw sensor traces with plot. In the PSD plot, we’ll only plot frequencies below 50 Hz (since our data are low-pass filtered at 40 Hz). In interactive Python sessions, plot is interactive and allows scrolling, scaling, bad channel marking, annotations, projector toggling, etc.* bu bize preprocess'in kapılarını açıyor diyebiliriz.
+- `info` summary: check `ch_names`, `sfreq`, channel types and any preexisting `bads` or annotations.
+- PSD (power spectral density): inspect frequency content (display up to 50 Hz for this dataset) to confirm expected peaks and to locate line-noise or unexpected narrow-band artifacts.
+- Raw traces: visually inspect segments to find transient artifacts (eye blinks, muscle activity, electrode jumps) and confirm data quality.
+- Montage / channel locations: ensure a standard montage (e.g. `standard_1005`) is assigned so spatial plots and topographies are meaningful and spatial coloring works.
 
+Example `Raw` header printed by MNE (for reference):
 
+```
+<RawEDF | S001R06.edf, 64 x 20000 (125.0 s), ~9.8 MiB, data loaded>
+<Info | 8 non-empty values
+	bads: []
+	ch_names: Fc5., Fc3., Fc1., Fcz., Fc2., Fc4., Fc6., C5.., C3.., C1.., ...
+	chs: 64 EEG
+	custom_ref_applied: False
+	highpass: 0.0 Hz
+	lowpass: 80.0 Hz
+	meas_date: 2009-08-12 16:15:00 UTC
+	nchan: 64
+	projs: []
+	sfreq: 160.0 Hz
+	subject_info: <subject_info | his_id: X, sex: 0, last_name: X>
+>
+```
+
+References and tutorials: https://mne.tools/stable/auto_tutorials/index.html
+## Step 4 — Preprocessing
+
+The preprocessing stage prepares raw EEG for feature extraction and modelling. In this project we apply the following steps and explain why each is important:
+
+- Band-pass filtering (1–40 Hz): removes slow drifts (below ~1 Hz) and high-frequency noise above the range of interest, keeping EEG frequencies where motor imagery signals typically appear (theta, alpha, beta bands).
+- Notch filtering (50 Hz): removes line noise (power-line interference) present in many recordings.
+- Channel renaming / montage: fix channel names and assign a standard montage (e.g. `standard_1005`) so topographic plots and spatial coloring work correctly.
+- Independent Component Analysis (ICA): decomposes the signal into components and allows removal of artifact components (eye blinks, cardiac or muscle artifacts) without discarding whole channels or epochs.
+- Events extraction: convert annotations into event arrays (e.g. `T0`, `T1`, `T2`) to locate trial onsets for epoching.
+- Epoching: cut raw data into trials (epochs) around events (for example tmin=1s to tmax=4s after cue) so features can be computed per trial and labelled for supervised learning.
+
+Why these steps matter:
+
+- Filtering and notch reduce irrelevant noise and make spectral features (e.g. band power) more reliable.
+- ICA reduces non-neural artifacts that would otherwise contaminate features or bias a classifier.
+- Event/epoch creation structures the data as labelled trials, which is necessary for supervised pipelines (feature extraction + classifier).
+
+The repository includes example PSD plots for the original and filtered data (see images):
+
+![](images/original_eeg.png)
+![](images/filtered_eeg.png)
 
 
 

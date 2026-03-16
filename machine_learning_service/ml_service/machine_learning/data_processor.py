@@ -2,6 +2,8 @@ import mne
 from mne.datasets import eegbci
 from pathlib import Path
 import sys
+from autoreject import AutoReject
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from ml_service.data_layer.data_connector import load_subdataset
@@ -44,6 +46,40 @@ class DataProcessor:
 
         return ica.apply(raw, exclude=ica.exclude)
 
+    def clean_eeg_data(self, raw, exclude):
+        filtered_raw = self.band_pass(raw)
+        filtered_raw = self.notch_filter(filtered_raw)
+        filtered_raw = self.ICA_filter(
+            filtered_raw,
+            exclude=exclude,  # 8,11,15
+            show_plots=False,
+        )
+        return filtered_raw
+
+    def find_events(self, raw):
+        events, event_id = mne.events_from_annotations(raw)
+        # print(events)
+        # print(event_id)
+        return events, event_id
+
+    def create_epochs(self, raw, events, event_id):
+
+        epochs = mne.Epochs(
+            raw,
+            events=events,
+            event_id=event_id,
+            tmin=1,
+            tmax=4,
+            baseline=None,
+            preload=True,
+        )
+        epochs = epochs["T1", "T2"]
+        ar = AutoReject()
+        nr_epochs = ar.fit_transform(epochs)
+        print(nr_epochs)
+        print(nr_epochs.get_data().shape)
+        return nr_epochs
+
     def EDA(self, raw):
         """Exploratory Data Analysis - print raw data information."""
         print(raw)
@@ -54,7 +90,7 @@ if __name__ == "__main__":
     raws = load_subdataset()
     raw = raws[0]
     processor = DataProcessor()
-    # processor.EDA(raw)
+    processor.EDA(raw)
     # raw = processor.band_pass(raw)
     # raw = processor.notch_filter(raw)
     # processor.ICA_filter(raw)

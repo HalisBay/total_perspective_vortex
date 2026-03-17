@@ -1,13 +1,16 @@
 import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
+import seaborn as sns
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from ml_service.data_layer.data_connector import load_subdataset
 from ml_service.machine_learning.data_processor import DataProcessor
+from ml_service.machine_learning.feature_extractor import FeatureExtractor
 
 processor = DataProcessor()
+extractor = FeatureExtractor()
 
 
 def ensure_channel_locations(raw):
@@ -41,6 +44,38 @@ def filter_plotter(raw, filter_raw):
     plt.show()
 
 
+def feature_plotter(features, ch_names, bandwidths):
+
+    features_3d = features.reshape(features.shape[0], 64, len(bandwidths))
+    avg_features = features_3d.mean(axis=0)
+    band_labels = [f"{b[0]}-{b[1]} Hz" for b in bandwidths]
+
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(
+        avg_features.T,
+        xticklabels=ch_names,
+        yticklabels=band_labels,
+        cmap="magma",
+    )
+    plt.title("average band power")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.show()
+
+    trial_means = features_3d.mean(axis=1)
+    plt.figure(figsize=(10, 5))
+    for i, label in enumerate(band_labels):
+        plt.plot(trial_means[:, i], marker="o", label=label, linewidth=2)
+
+    plt.title("power evolution")
+    plt.xlabel("epoch")
+    plt.ylabel("mean power")
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     raws = load_subdataset()
     raws = list(raws)
@@ -52,5 +87,10 @@ if __name__ == "__main__":
 
     events, e_id = processor.find_events(filter_raw)
     epochs = processor.create_epochs(filter_raw, events, e_id)
-    plotter(raw_original, show_trace=False, title="Original EEG")
-    plotter(epochs, show_trace=False, title="Filtered EEG")
+    # plotter(raw_original, show_trace=False, title="Original EEG")
+    # plotter(epochs, show_trace=False, title="Filtered EEG")
+    features = extractor.transformer(epochs)
+    ch_names = epochs.ch_names
+    bandwidths = extractor.bandwidth
+
+    feature_plotter(features, ch_names, bandwidths)

@@ -2,3 +2,5 @@ mne
 matplotlib
 scikit-learn
 autoreject
+numpy
+sns

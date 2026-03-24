@@ -7,10 +7,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from ml_service.data_layer.data_connector import load_subdataset
 from ml_service.machine_learning.data_processor import DataProcessor
-from ml_service.machine_learning.feature_extractor import FeatureExtractor
+# from ml_service.machine_learning.feature_extractor import FeatureExtractor
 
 processor = DataProcessor()
-extractor = FeatureExtractor()
+# extractor = FeatureExtractor()
 
 
 def ensure_channel_locations(raw):
@@ -76,21 +76,21 @@ def feature_plotter(features, ch_names, bandwidths):
     plt.show()
 
 
-if __name__ == "__main__":
-    raws = load_subdataset()
-    raws = list(raws)
-    raw = raws[0]
-    raw_original = raw.copy()
-    #   plotter(raw)
-    filter_raw = processor.clean_eeg_data(raw, [0, 2, 4, 5, 9, 8, 10, 16])
-    # filter_plotter(raw_original, filter_raw)
+# if __name__ == "__main__":
+#     raws = load_subdataset()
+#     raws = list(raws)
+#     raw = raws[0]
+#     raw_original = raw.copy()
+#     #   plotter(raw)
+#     filter_raw = processor.clean_eeg_data(raw, [0, 2, 4, 5, 9, 8, 10, 16])
+#     # filter_plotter(raw_original, filter_raw)
 
-    events, e_id = processor.find_events(filter_raw)
-    epochs = processor.create_epochs(filter_raw, events, e_id)
-    # plotter(raw_original, show_trace=False, title="Original EEG")
-    # plotter(epochs, show_trace=False, title="Filtered EEG")
-    features = extractor.transformer(epochs)
-    ch_names = epochs.ch_names
-    bandwidths = extractor.bandwidth
+#     events, e_id = processor.find_events(filter_raw)
+#     epochs = processor.create_epochs(filter_raw, events, e_id)
+#     # plotter(raw_original, show_trace=False, title="Original EEG")
+#     # plotter(epochs, show_trace=False, title="Filtered EEG")
+#     features = extractor.transformer(epochs)
+#     ch_names = epochs.ch_names
+#     bandwidths = extractor.bandwidth
 
-    feature_plotter(features, ch_names, bandwidths)
+#     feature_plotter(features, ch_names, bandwidths)

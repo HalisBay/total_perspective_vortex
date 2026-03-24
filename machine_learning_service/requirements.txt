@@ -4,3 +4,5 @@ scikit-learn
 autoreject
 numpy
 sns
+seaborn
+joblib

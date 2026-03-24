@@ -4,7 +4,6 @@ from pathlib import Path
 import sys
 from autoreject import AutoReject
 
-
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from ml_service.data_layer.data_connector import load_subdataset
 
@@ -86,11 +85,11 @@ class DataProcessor:
         print(raw.info)
 
 
-if __name__ == "__main__":
-    raws = load_subdataset()
-    raw = raws[0]
-    processor = DataProcessor()
-    processor.EDA(raw)
-    # raw = processor.band_pass(raw)
-    # raw = processor.notch_filter(raw)
-    # processor.ICA_filter(raw)
+# if __name__ == "__main__":
+#     raws = load_subdataset()
+#     raw = raws[0]
+#     processor = DataProcessor()
+#     processor.EDA(raw)
+#     # raw = processor.band_pass(raw)
+#     # raw = processor.notch_filter(raw)
+#     # processor.ICA_filter(raw)

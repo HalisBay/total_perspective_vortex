@@ -1,7 +1,8 @@
 from ml_service.machine_learning.data_processor import DataProcessor
 # from ml_service.machine_learning.feature_extractor import FeatureExtractor
 import numpy as np
-from mne.decoding import CSP
+# from mne.decoding import CSP
+from ml_service.machine_learning.mycsp import MyCSP
 from sklearn.pipeline import Pipeline
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import cross_val_score
@@ -23,7 +24,8 @@ class TrainingPipeline:
         return X, y
 
     def create_csp_lda_pipeline(self):
-        csp = CSP()
+        # csp = CSP()
+        csp = mycsp()
         lda = LinearDiscriminantAnalysis()
         self.pipeline = Pipeline([("csp", csp), ("lda", lda)])
 

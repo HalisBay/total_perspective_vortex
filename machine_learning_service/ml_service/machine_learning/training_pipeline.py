@@ -25,7 +25,7 @@ class TrainingPipeline:
 
     def create_csp_lda_pipeline(self):
         # csp = CSP()
-        csp = mycsp()
+        csp = MyCSP()
         lda = LinearDiscriminantAnalysis()
         self.pipeline = Pipeline([("csp", csp), ("lda", lda)])
 

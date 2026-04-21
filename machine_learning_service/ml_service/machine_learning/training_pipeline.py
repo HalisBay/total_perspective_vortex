@@ -36,7 +36,7 @@ class TrainingPipeline:
             self.create_csp_lda_pipeline()
         scores = cross_val_score(self.pipeline, X, y, cv=5, scoring="accuracy")
         print(f"scores: {[f'{s:.2f}' for s in scores]}")
-        print(f"mean acc: {scores.mean():.2f}")
+        print(f"cross_val_score: {scores.mean():.2f}")
 
     def fit(self, X, y):
         if self.pipeline is None:

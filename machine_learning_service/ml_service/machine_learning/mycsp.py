@@ -30,14 +30,14 @@ class MyCSP(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         n_components=4,
-        log=True,
+        log=None,
         component_order="mutual_info",
     ):
         self.n_components = n_components
         self.log = log
         self.component_order = component_order
         self.eps = 1e-9
-        self.filters_ = None
+        self.filters = None
 
     def fit(self, X, y):
         if X.ndim != 3:
@@ -80,20 +80,20 @@ class MyCSP(BaseEstimator, TransformerMixin):
 
         W = eig_vecs.T @ whiten_cov_matx
 
-        self.filters_ = W[: self.n_components]
+        self.filters = W[: self.n_components]
 
         return self
 
     def transform(self, X):
-        if self.filters_ is None:
+        if self.filters is None:
             raise ValueError("Model has not been fitted")
         n_samples = X.shape[0]
-        n_filters = self.filters_.shape[0]
+        n_filters = self.filters.shape[0]
 
         X_csp = np.zeros((n_samples, n_filters))
 
         for i, sample in enumerate(X):
-            csp_fiter = self.filters_ @ sample
+            csp_fiter = self.filters @ sample
             power = (csp_fiter**2).mean(axis=1)
             if self.log:
                 X_csp[i, :] = np.log(np.maximum(power, self.eps))

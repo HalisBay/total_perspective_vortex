@@ -27,9 +27,9 @@ data_path = base / "data"
 data_path.mkdir(parents=True, exist_ok=True)
 
 
-def load_subdataset(sub,run):
+def load_subdataset(sub, run):
     """Download a small pilot subset into `machine_learning_service/data/` and return Raw objects."""
-    subjects = range(1, sub + 1)
+    subjects = [sub]
     runs = [run]  # motor imagery
     files: list[str] = []
 
@@ -37,7 +37,6 @@ def load_subdataset(sub,run):
         files += eegbci.load_data(s, runs, path=str(data_path))
 
     raws = [mne.io.read_raw_edf(f, preload=True) for f in files]
-    print(f"Loaded {len(raws)} raws; files saved to: {data_path}")
-
+    print(f"Loaded {len(raws)} raw/raws; files saved to: {data_path}")
 
     return raws

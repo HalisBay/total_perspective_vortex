@@ -2,10 +2,12 @@ from ml_service.data_layer.data_connector import load_subdataset
 from ml_service.machine_learning.data_processor import DataProcessor
 from ml_service.machine_learning.training_pipeline import TrainingPipeline
 from ml_service.data_layer.object_connector import ObjectConnector
+from ml_service.applications.visualize import plotter, filter_plotter
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import sys
+import time
 
 processor = DataProcessor()
 trainer = TrainingPipeline()
@@ -18,11 +20,18 @@ def load_data(subject, run):
     return raw
 
 
-def data_preprocess(raw):
-    filter_raw = processor.clean_eeg_data(raw, [0, 5, 9, 16])  #  2, 4, 8, 10
+def data_preprocess(raw, visualize=False):
+
+    filter_raw = processor.clean_eeg_data(raw, [0,16])  # 2, 4, 8, 10, 5, 9, 16
 
     events, e_id = processor.find_events(filter_raw)
     epochs = processor.create_epochs(filter_raw, events, e_id)
+    if visualize:
+        plotter(raw, "Raw EEG Data", show_trace=False)
+        filter_plotter(raw, filter_raw)
+        plotter(raw, show_trace=False, title="Original EEG")
+        plotter(epochs, show_trace=False, title="Filtered EEG")
+
     return epochs
 
 
@@ -33,22 +42,36 @@ def train(epochs):
     print("*" * 50)
     trainer.get_cv_score(X, y)
     print("*" * 50)
-
-    X_train, X_val, y_train, y_val = train_test_split(
+    # Train - test - valid
+    X_train_val, X_test, y_train_val, y_test = train_test_split(
         X,
         y,
         test_size=0.2,
         stratify=y,
         random_state=42,
     )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train_val,
+        y_train_val,
+        test_size=0.25,
+        stratify=y_train_val,
+        random_state=43,
+    )
+
     trainer.fit(X_train, y_train)
     oconnector.save_model(trainer.pipeline, "csplda.joblib")
 
-    model = oconnector.load_model("csplda.joblib")
-    oconnector.get_model_info(model)
+    # model = oconnector.load_model("csplda.joblib")
+    # oconnector.get_model_info(model)
 
-    y_pred = model.predict(X_val)
-    acc = accuracy_score(y_val, y_pred)
+    # y_val_pred = model.predict(X_val)
+    # val_acc = accuracy_score(y_val, y_val_pred)
+
+    # y_test_pred = model.predict(X_test)
+    # test_acc = accuracy_score(y_test, y_test_pred)
+
+    # print(f"Validation accuracy: {val_acc:.4f}")
+    # print(f"Test accuracy: {test_acc:.4f}")
 
 
 def infer(epochs, model_path="csplda.joblib"):
@@ -69,22 +92,20 @@ def infer(epochs, model_path="csplda.joblib"):
 
 
 if __name__ == "__main__":
-    # TODO: python mybci.py için ekleme yapılcak
-    if len(sys.argv) == 4:
-        sub_name = int(sys.argv[1])
-        run_name = int(sys.argv[2])
-        mode = sys.argv[3]
 
-        raw = load_data(sub_name, run_name)
-        epochs = data_preprocess(raw)
+    sub_name = int(sys.argv[1])
+    run_name = int(sys.argv[2])
+    mode = sys.argv[3]
 
-        if mode == "train":
-            train(epochs)
-        elif mode == "infer":
-            infer(epochs)
-        else:
-            print("python mybci.py subject run train/infer")
-            sys.exit(1)
+    raw = load_data(sub_name, run_name)
+    epochs = data_preprocess(raw)
+    if mode == "train":
+        train(epochs)
+    elif mode == "infer":
+        t_infer = time.perf_counter()
+        infer(epochs)
+        t_sum = time.perf_counter() - t_infer
+        print(f"Inference time: {t_sum:.4f}s")
     else:
         print("python mybci.py subject run train/infer")
         sys.exit(1)

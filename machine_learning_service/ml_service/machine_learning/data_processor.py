@@ -11,7 +11,7 @@ from ml_service.data_layer.data_connector import load_subdataset
 class DataProcessor:
     """EEG data processing and filtering class."""
 
-    def band_pass(self, raw, l_freq=1.0, h_freq=40.0):
+    def band_pass(self, raw, l_freq=4.0, h_freq=35.0):
         """Apply band-pass filter (default 1-40 Hz)."""
         return raw.filter(l_freq=l_freq, h_freq=h_freq)
 
@@ -67,7 +67,7 @@ class DataProcessor:
             raw,
             events=events,
             event_id=event_id,
-            tmin=1,
+            tmin=0,
             tmax=4,
             baseline=None,
             preload=True,

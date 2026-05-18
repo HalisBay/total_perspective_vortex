@@ -8,15 +8,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import sys
 import time
+import argparse
+import mne
 
 processor = DataProcessor()
 trainer = TrainingPipeline()
 oconnector = ObjectConnector()
 
 
-def load_data(subject, run):
-    raws = load_subdataset(subject, run)
-    raw = raws[0]  # subject
+def load_data(subjects, runs):
+    raws = load_subdataset(subjects, runs)
+    if len(raws) > 1:
+        raw = mne.concatenate_raws(raws)
+    else:
+        raw = raws[0]
     return raw
 
 
@@ -46,14 +51,14 @@ def train(epochs):
     X_train_val, X_test, y_train_val, y_test = train_test_split(
         X,
         y,
-        test_size=0.2,
+        test_size=0.15,
         stratify=y,
         random_state=42,
     )
     X_train, X_val, y_train, y_val = train_test_split(
         X_train_val,
         y_train_val,
-        test_size=0.25,
+        test_size=0.15,
         stratify=y_train_val,
         random_state=43,
     )
@@ -92,20 +97,27 @@ def infer(epochs, model_path="csplda.joblib"):
 
 
 if __name__ == "__main__":
-
-    sub_name = int(sys.argv[1])
-    run_name = int(sys.argv[2])
-    mode = sys.argv[3]
-
-    raw = load_data(sub_name, run_name)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--subjects', nargs='+', type=int, required=True)
+    parser.add_argument('-r', '--runs', nargs='+', type=int, required=True)
+    parser.add_argument('-p', '--process', type=str, required=True, choices=['train', 'infer'])
+    
+    args = parser.parse_args()
+    
+    if len(args.subjects) < 2 and args.process == "train":
+        print("Error: Minimum 2 subject IDs required.")
+        sys.exit(1)
+    if len(args.runs) < 4 and args.process == "train":
+        print("Error: Minimum 4 runs required.")
+        sys.exit(1)
+        
+    raw = load_data(args.subjects, args.runs)
     epochs = data_preprocess(raw)
-    if mode == "train":
+    
+    if args.process == "train":
         train(epochs)
-    elif mode == "infer":
+    elif args.process == "infer":
         t_infer = time.perf_counter()
         infer(epochs)
         t_sum = time.perf_counter() - t_infer
         print(f"Inference time: {t_sum:.4f}s")
-    else:
-        print("python mybci.py subject run train/infer")
-        sys.exit(1)

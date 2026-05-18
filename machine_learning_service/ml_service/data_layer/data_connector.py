@@ -27,10 +27,8 @@ data_path = base / "data"
 data_path.mkdir(parents=True, exist_ok=True)
 
 
-def load_subdataset(sub, run):
-    """Download a small pilot subset into `machine_learning_service/data/` and return Raw objects."""
-    subjects = [sub]
-    runs = [run]  # motor imagery
+def load_subdataset(subjects, runs):
+    """Download datasets for multiple subjects and runs into `machine_learning_service/data/` and return Raw objects."""
     files: list[str] = []
 
     for s in subjects:

@@ -44,9 +44,7 @@ def train(epochs):
     X, y = trainer.get_train_data(epochs=epochs)
     print(f"  X shape: {X.shape}, y shape: {y.shape}")
     print(f"  Class distribution: {np.bincount(y)}")
-    print("*" * 50)
-    trainer.get_cv_score(X, y)
-    print("*" * 50)
+
     # Train - test - valid
     X_train_val, X_test, y_train_val, y_test = train_test_split(
         X,
@@ -55,6 +53,9 @@ def train(epochs):
         stratify=y,
         random_state=42,
     )
+    print("*" * 50)
+    trainer.get_cv_score(X_train_val, y_train_val)
+    print("*" * 50)
     X_train, X_val, y_train, y_val = train_test_split(
         X_train_val,
         y_train_val,
@@ -64,6 +65,10 @@ def train(epochs):
     )
 
     trainer.fit(X_train, y_train)
+
+    val_accuracy = trainer.pipeline.score(X_val, y_val)
+    print(f"Validation accuracy: {val_accuracy:.2f}")
+
     oconnector.save_model(trainer.pipeline, "csplda.joblib")
 
     # model = oconnector.load_model("csplda.joblib")
@@ -112,7 +117,10 @@ if __name__ == "__main__":
         sys.exit(1)
         
     raw = load_data(args.subjects, args.runs)
-    epochs = data_preprocess(raw)
+    if args.process == "train":
+        epochs = data_preprocess(raw, visualize=True)
+    else:
+        epochs = data_preprocess(raw, visualize=False)
     
     if args.process == "train":
         train(epochs)
@@ -121,3 +129,7 @@ if __name__ == "__main__":
         infer(epochs)
         t_sum = time.perf_counter() - t_infer
         print(f"Inference time: {t_sum:.4f}s")
+
+
+#  python .\mybci.py -f 3 7 -r 3 4 7 8 11 -p train,  12 infer
+#  python .\mybci.py -f 3 7 -r 3 4 5 6 7 8 9 10 -p train,  11 12 infer

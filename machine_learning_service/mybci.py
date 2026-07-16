@@ -26,15 +26,15 @@ def load_data(subjects, runs):
 
 
 def data_preprocess(raw, visualize=False):
-
+    raw_original = raw.copy()
     filter_raw = processor.clean_eeg_data(raw, [0,16])  # 2, 4, 8, 10, 5, 9, 16
 
     events, e_id = processor.find_events(filter_raw)
     epochs = processor.create_epochs(filter_raw, events, e_id)
     if visualize:
-        plotter(raw, "Raw EEG Data", show_trace=False)
-        filter_plotter(raw, filter_raw)
-        plotter(raw, show_trace=False, title="Original EEG")
+        plotter(raw_original, "Raw EEG Data", show_trace=False)
+        filter_plotter(raw_original, filter_raw)
+        plotter(raw_original, show_trace=False, title="Original EEG")
         plotter(epochs, show_trace=False, title="Filtered EEG")
 
     return epochs

@@ -45,14 +45,22 @@ class DataProcessor:
 
         return ica.apply(raw, exclude=ica.exclude)
 
+
     def clean_eeg_data(self, raw, exclude):
+        MOTOR_ROI = [
+        "Fc5", "Fc3", "Fc1", "Fcz", "Fc2", "Fc4", "Fc6",
+        "C5", "C3", "C1", "Cz", "C2", "C4", "C6",
+        "Cp5", "Cp3", "Cp1", "Cpz", "Cp2", "Cp4", "Cp6",
+        ]
         filtered_raw = self.band_pass(raw)
         filtered_raw = self.notch_filter(filtered_raw)
+        raw.pick([ch for ch in raw.ch_names if not ch.startswith(("P", "O"))])
         filtered_raw = self.ICA_filter(
             filtered_raw,
             exclude=exclude,  # 8,11,15
             show_plots=False,
         )
+        filtered_raw.pick(MOTOR_ROI)
         return filtered_raw
 
     def find_events(self, raw):
